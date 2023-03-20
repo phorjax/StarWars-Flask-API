@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, People
+from models import db, User, Planet, People, UserFavorites
 #from models import Person
 
 app = Flask(__name__)
@@ -77,53 +77,78 @@ def get_all_users():
     return jsonify(all_people), 200
 
 
+# user favorites 
+@app.route('/users/favorites', methods=['GET'])
+def get_all_user_favorites():
+    users = UserFavorites.query.all()
+    all_people = list(map(lambda x: x.serialize(), users))
+    return jsonify(all_people), 200
 
 
+#post
 
-@app.route('/user', methods=['POST'])
-def handle_user():
+
+#post planets
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def handle_planet():
     response_body = request.get_json()
-    user = User(email=response_body["email"], password=response_body["password"])
+    user = Planet(planets_id=response_body["planets_id"])
     db.session.add(user)
     db.session.commit()
     return jsonify(response_body), 200
 
 
 
-
-
-
-
-@app.route('/user/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
+# post people
+@app.route('/favorite/people/<int:people_id>', methods=['POST'])
+def handle_people():
     response_body = request.get_json()
-    user = User.query.get(user_id)
-    
-    if user is None:
-        raise APIException("user not found", 404)
-    if "email" in response_body:
-        user.email = response_body["email"]
-    if "password" in response_body:
-        user.password = response_body["password"]
+    user = People(people_id=response_body["people_id"])
+    db.session.add(user)
     db.session.commit()
     return jsonify(response_body), 200
 
 
+# @app.route('/user/<int:user_id>', methods=['PUT'])
+# def update_user(user_id):
+#     response_body = request.get_json()
+#     user = User.query.get(user_id)
+    
+#     if user is None:
+#         raise APIException("user not found", 404)
+#     if "email" in response_body:
+#         user.email = response_body["email"]
+#     if "password" in response_body:
+#         user.password = response_body["password"]
+#     db.session.commit()
+#     return jsonify(response_body), 200
 
 
 
+#delete
 
 
-
-@app.route('/user/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    user = User.query.get(user_id)
+#delete planets
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_planets(planet_id):
+    user = Planet.query.get(planet_id)
     if user is None:
         raise APIException("user not found", 404)
     db.session.delete(user)
     db.session.commit()
-    return jsonify("has been deleted"), 200
+    return jsonify("planet has been deleted"), 200
 
+
+
+#delete people
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def delete_people(person_id):
+    user = People.query.get(person_id)
+    if user is None:
+        raise APIException("user not found", 404)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify("person has been deleted"), 200
 
 
 
